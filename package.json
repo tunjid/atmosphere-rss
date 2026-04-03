@@ -2,6 +2,24 @@
   "name": "atmosphere-rss",
   "version": "0.1.0",
   "description": "Import RSS feeds as standard.site publications and documents on the AT Protocol",
+  "author": "Adetunji Dahunsi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tunjid/atmosphere-rss.git"
+  },
+  "homepage": "https://github.com/tunjid/atmosphere-rss",
+  "keywords": [
+    "rss",
+    "atom",
+    "atproto",
+    "at-protocol",
+    "standard-site",
+    "bluesky",
+    "publication",
+    "blog",
+    "import"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,13 +34,13 @@
   ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT",
   "dependencies": {
     "@atproto/api": "^0.13.0",
     "fast-xml-parser": "^5.2.0"
