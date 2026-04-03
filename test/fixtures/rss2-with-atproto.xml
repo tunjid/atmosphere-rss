@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My Podcast</title>
+    <link>https://podcast.example.com</link>
+    <description>A podcast with AT Protocol declaration</description>
+    <atom:link rel="site.standard.publication" href="at://did:plc:abc123/site.standard.publication/3lwafzkjqm25s"/>
+    <item>
+      <title>Episode 1</title>
+      <link>https://podcast.example.com/ep1</link>
+      <pubDate>Mon, 15 Jan 2024 08:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

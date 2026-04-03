@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>My Podcast</title>
+    <link>https://podcast.example.com</link>
+    <description>A great podcast</description>
+    <itunes:image href="https://podcast.example.com/artwork.jpg"/>
+    <item>
+      <title>Episode 1: Pilot</title>
+      <link>https://podcast.example.com/episodes/1</link>
+      <description>The first episode</description>
+      <enclosure url="https://cdn.example.com/ep1.mp3" type="audio/mpeg" length="52428800"/>
+      <pubDate>Mon, 15 Jan 2024 08:00:00 GMT</pubDate>
+      <itunes:duration>1:05:30</itunes:duration>
+      <itunes:episode>1</itunes:episode>
+      <itunes:season>1</itunes:season>
+      <itunes:episodeType>full</itunes:episodeType>
+      <category>Technology</category>
+    </item>
+    <item>
+      <title>Trailer</title>
+      <link>https://podcast.example.com/episodes/trailer</link>
+      <description>Coming soon!</description>
+      <enclosure url="https://cdn.example.com/trailer.mp3" type="audio/mpeg" length="5242880"/>
+      <pubDate>Sun, 14 Jan 2024 08:00:00 GMT</pubDate>
+      <itunes:duration>120</itunes:duration>
+      <itunes:episodeType>trailer</itunes:episodeType>
+    </item>
+  </channel>
+</rss>

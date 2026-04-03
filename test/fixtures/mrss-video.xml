@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Video Channel</title>
+    <link>https://video.example.com</link>
+    <description>A video feed</description>
+    <item>
+      <title>My Video</title>
+      <link>https://video.example.com/videos/my-video</link>
+      <description>A great video</description>
+      <pubDate>Fri, 01 Mar 2024 18:00:00 GMT</pubDate>
+      <media:content url="https://cdn.example.com/video.mp4" type="video/mp4" fileSize="104857600" medium="video"/>
+      <media:thumbnail url="https://cdn.example.com/thumb.jpg"/>
+    </item>
+  </channel>
+</rss>

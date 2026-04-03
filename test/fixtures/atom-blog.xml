@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Blog</title>
+  <link rel="alternate" href="https://atom.example.com"/>
+  <link rel="self" href="https://atom.example.com/feed.xml"/>
+  <subtitle>An Atom feed</subtitle>
+  <icon>https://atom.example.com/favicon.png</icon>
+  <entry>
+    <title>Hello World</title>
+    <link rel="alternate" href="https://atom.example.com/hello-world"/>
+    <published>2024-02-01T12:00:00Z</published>
+    <summary>A summary of the post</summary>
+    <content type="html"><![CDATA[<h1>Hello World</h1><p>Content here</p>]]></content>
+    <category term="intro"/>
+    <category term="first"/>
+  </entry>
+  <entry>
+    <title>Second Entry</title>
+    <link rel="alternate" href="https://atom.example.com/second"/>
+    <updated>2024-02-02T15:00:00Z</updated>
+    <summary>Just a summary</summary>
+  </entry>
+</feed>
