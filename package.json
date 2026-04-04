@@ -1,6 +1,6 @@
 {
   "name": "atmosphere-rss",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Import RSS feeds as standard.site publications and documents on the AT Protocol",
   "author": "Adetunji Dahunsi",
   "license": "MIT",
@@ -42,8 +42,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@atproto/api": "^0.13.0",
-    "fast-xml-parser": "^5.2.0"
+    "@atproto/api": "^0.19.6",
+    "fast-xml-parser": "^5.5.10"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
