@@ -29,23 +29,15 @@ function parseAtUri(atUri: string): PublicationInfo {
  * Resolve via /.well-known/site.standard.publication on the publication domain.
  */
 async function resolveWellKnown(
-  publicationUrl: string,
-  domainOverride?: string
+  publicationUrl: string
 ): Promise<PublicationInfo> {
-  const domain =
-    domainOverride ??
-    (() => {
-      try {
-        return new URL(publicationUrl).origin;
-      } catch {
-        return publicationUrl.replace(/\/+$/, "");
-      }
-    })();
-
-  const base = domainOverride
-    ? `https://${domainOverride}`
-    : domain;
-  const wellKnownUrl = `${base.replace(/\/+$/, "")}/.well-known/site.standard.publication`;
+  let origin: string;
+  try {
+    origin = new URL(publicationUrl).origin;
+  } catch {
+    origin = publicationUrl.replace(/\/+$/, "");
+  }
+  const wellKnownUrl = `${origin}/.well-known/site.standard.publication`;
 
   const response = await fetch(wellKnownUrl);
   if (!response.ok) {
@@ -61,24 +53,23 @@ async function resolveWellKnown(
 
 /**
  * Resolve the publication owner DID via a DNS TXT record at _atproto.{domain},
- * then combine with the provided rkey.
+ * then list their site.standard.publication records to find the matching one.
  */
 async function resolveDnsTxt(
-  domain: string,
-  rkey: string
+  domain: string
 ): Promise<PublicationInfo> {
-  // Use DNS-over-HTTPS (Cloudflare) to resolve TXT records — works everywhere
+  // Resolve DID from DNS TXT record
   const dnsUrl = `https://cloudflare-dns.com/dns-query?name=_atproto.${encodeURIComponent(domain)}&type=TXT`;
-  const response = await fetch(dnsUrl, {
+  const dnsResponse = await fetch(dnsUrl, {
     headers: { Accept: "application/dns-json" },
   });
-  if (!response.ok) {
+  if (!dnsResponse.ok) {
     throw new Error(
-      `DNS lookup failed for _atproto.${domain}: ${response.status}`
+      `DNS lookup failed for _atproto.${domain}: ${dnsResponse.status}`
     );
   }
 
-  const dnsResult = (await response.json()) as {
+  const dnsResult = (await dnsResponse.json()) as {
     Answer?: { data: string }[];
   };
 
@@ -103,8 +94,68 @@ async function resolveDnsTxt(
     );
   }
 
-  const atUri = `at://${did}/site.standard.publication/${rkey}`;
-  return { did, rkey, atUri };
+  // Resolve the PDS endpoint for this DID
+  const plcResponse = await fetch(
+    `https://plc.directory/${encodeURIComponent(did)}`
+  );
+  if (!plcResponse.ok) {
+    throw new Error(`Could not resolve DID "${did}" from plc.directory`);
+  }
+  const didDoc = (await plcResponse.json()) as {
+    service?: { type: string; serviceEndpoint: string }[];
+  };
+  const pdsService = didDoc.service?.find(
+    (s) => s.type === "AtprotoPersonalDataServer"
+  );
+  if (!pdsService?.serviceEndpoint) {
+    throw new Error(`No PDS service found for "${did}"`);
+  }
+
+  // List publication records and find one matching the domain
+  const listUrl =
+    `${pdsService.serviceEndpoint}/xrpc/com.atproto.repo.listRecords` +
+    `?repo=${encodeURIComponent(did)}&collection=site.standard.publication&limit=100`;
+  const listResponse = await fetch(listUrl);
+  if (!listResponse.ok) {
+    throw new Error(
+      `Failed to list publication records for ${did}: ${listResponse.status}`
+    );
+  }
+
+  const listResult = (await listResponse.json()) as {
+    records: { uri: string; value: { url?: string } }[];
+  };
+
+  const normalizedDomain = domain.replace(/\/+$/, "").toLowerCase();
+  const matchingRecord = listResult.records.find((r) => {
+    const pubUrl = r.value.url?.replace(/\/+$/, "").toLowerCase() ?? "";
+    try {
+      return new URL(pubUrl).hostname === normalizedDomain;
+    } catch {
+      return pubUrl === normalizedDomain;
+    }
+  });
+
+  if (!matchingRecord) {
+    throw new Error(
+      `No site.standard.publication record found for domain "${domain}" ` +
+        `in repo ${did}. The account has ${listResult.records.length} publication(s), ` +
+        "but none match this domain."
+    );
+  }
+
+  const uriMatch = matchingRecord.uri.match(AT_URI_RE);
+  if (!uriMatch) {
+    throw new Error(
+      `Unexpected publication URI format: "${matchingRecord.uri}"`
+    );
+  }
+
+  return {
+    did: uriMatch[1],
+    rkey: uriMatch[2],
+    atUri: matchingRecord.uri,
+  };
 }
 
 /**
@@ -129,11 +180,19 @@ async function resolvePublicationInfo(
 ): Promise<PublicationInfo> {
   const strategy = verification ?? { type: "well-known" as const };
 
+  const publicationUrl = feed.publication.url;
+  let domain: string;
+  try {
+    domain = new URL(publicationUrl).hostname;
+  } catch {
+    throw new Error(`Cannot extract domain from feed publication URL: "${publicationUrl}"`);
+  }
+
   switch (strategy.type) {
     case "well-known":
-      return resolveWellKnown(feed.publication.url, strategy.domain);
+      return resolveWellKnown(publicationUrl);
     case "dns-txt":
-      return resolveDnsTxt(strategy.domain, strategy.rkey);
+      return resolveDnsTxt(domain);
     case "feed-declared":
       return resolveFeedDeclared(feed);
   }

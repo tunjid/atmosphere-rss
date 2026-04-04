@@ -86,14 +86,6 @@ const key2 = await documentRecordKey(date, new URL("https://mirror.example.org/p
 // key1 === key2
 ```
 
-### `publicationRecordKey(url)`
-
-Return a deterministic record key for a `site.standard.publication` given its URL.
-
-```typescript
-async function publicationRecordKey(url: URL): Promise<string>;
-```
-
 ### `validateFeed(feed)`
 
 Validate that a parsed feed is a long-form writing feed. Throws if the feed appears to be a podcast or video feed.
@@ -127,22 +119,16 @@ await importRss(feedUrl, {
   agent,
   verification: { type: "well-known" },
 });
-
-// Or with a custom domain override:
-await importRss(feedUrl, {
-  agent,
-  verification: { type: "well-known", domain: "myblog.com" },
-});
 ```
 
 ### DNS TXT record
 
-Resolves the publication owner DID via a `_atproto.{domain}` DNS TXT record, then uses a provided record key.
+Resolves the publication owner DID via a `_atproto.{domain}` DNS TXT record, then looks up the matching `site.standard.publication` record from the owner's repo.
 
 ```typescript
 await importRss(feedUrl, {
   agent,
-  verification: { type: "dns-txt", domain: "myblog.com", rkey: "abc123" },
+  verification: { type: "dns-txt", domain: "myblog.com" },
 });
 ```
 

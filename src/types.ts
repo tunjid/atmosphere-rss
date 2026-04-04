@@ -67,24 +67,19 @@ export interface ImportResult {
 
 /**
  * Resolve the publication's AT URI via /.well-known/site.standard.publication
- * hosted on the publication's domain.
+ * hosted on the feed's publication domain.
  */
 export interface WellKnownVerification {
   type: "well-known";
-  /** Optional override domain. Defaults to the feed's publication URL host. */
-  domain?: string;
 }
 
 /**
  * Resolve the publication owner via a DNS TXT record at
- * _atproto.{domain}, then use the provided rkey for the publication.
+ * _atproto.{domain} (using the feed's publication domain),
+ * then look up the matching publication record from the owner's repo.
  */
 export interface DnsTxtVerification {
   type: "dns-txt";
-  /** The domain to look up the _atproto TXT record on. */
-  domain: string;
-  /** The record key to use for the publication. */
-  rkey: string;
 }
 
 /**

@@ -18,14 +18,6 @@ export async function documentRecordKey(
   return tidFromDateAndString(publishedAt, url.pathname);
 }
 
-/**
- * Return the deterministic record key for a standard publication.
- * Uses the URL origin as the hash input.
- */
-export async function publicationRecordKey(url: URL): Promise<string> {
-  return tidFromDateAndString(new Date(0), url.origin);
-}
-
 export type {
   ParsedFeed,
   ParsedPublication,
