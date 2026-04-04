@@ -1,6 +1,6 @@
 {
   "name": "atmosphere-rss",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Import RSS feeds as standard.site publications and documents on the AT Protocol",
   "author": "Adetunji Dahunsi",
   "license": "MIT",
