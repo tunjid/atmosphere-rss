@@ -1,4 +1,5 @@
 import type {
+  FetchFunction,
   ImportOptions,
   ImportResult,
   ParsedFeed,
@@ -29,7 +30,8 @@ function parseAtUri(atUri: string): PublicationInfo {
  * Resolve via /.well-known/site.standard.publication on the publication domain.
  */
 async function resolveWellKnown(
-  publicationUrl: string
+  publicationUrl: string,
+  fetchFn: FetchFunction
 ): Promise<PublicationInfo> {
   let origin: string;
   try {
@@ -39,7 +41,7 @@ async function resolveWellKnown(
   }
   const wellKnownUrl = `${origin}/.well-known/site.standard.publication`;
 
-  const response = await fetch(wellKnownUrl);
+  const response = await fetchFn(wellKnownUrl);
   if (!response.ok) {
     throw new Error(
       `Could not reach ${wellKnownUrl}. The site must have a ` +
@@ -56,11 +58,12 @@ async function resolveWellKnown(
  * then list their site.standard.publication records to find the matching one.
  */
 async function resolveDnsTxt(
-  domain: string
+  domain: string,
+  fetchFn: FetchFunction
 ): Promise<PublicationInfo> {
   // Resolve DID from DNS TXT record
   const dnsUrl = `https://cloudflare-dns.com/dns-query?name=_atproto.${encodeURIComponent(domain)}&type=TXT`;
-  const dnsResponse = await fetch(dnsUrl, {
+  const dnsResponse = await fetchFn(dnsUrl, {
     headers: { Accept: "application/dns-json" },
   });
   if (!dnsResponse.ok) {
@@ -95,7 +98,7 @@ async function resolveDnsTxt(
   }
 
   // Resolve the PDS endpoint for this DID
-  const plcResponse = await fetch(
+  const plcResponse = await fetchFn(
     `https://plc.directory/${encodeURIComponent(did)}`
   );
   if (!plcResponse.ok) {
@@ -115,7 +118,7 @@ async function resolveDnsTxt(
   const listUrl =
     `${pdsService.serviceEndpoint}/xrpc/com.atproto.repo.listRecords` +
     `?repo=${encodeURIComponent(did)}&collection=site.standard.publication&limit=100`;
-  const listResponse = await fetch(listUrl);
+  const listResponse = await fetchFn(listUrl);
   if (!listResponse.ok) {
     throw new Error(
       `Failed to list publication records for ${did}: ${listResponse.status}`
@@ -176,7 +179,8 @@ function resolveFeedDeclared(feed: ParsedFeed): PublicationInfo {
 
 async function resolvePublicationInfo(
   feed: ParsedFeed,
-  verification: PublicationVerification | undefined
+  verification: PublicationVerification | undefined,
+  fetchFn: FetchFunction
 ): Promise<PublicationInfo> {
   const strategy = verification ?? { type: "well-known" as const };
 
@@ -190,9 +194,9 @@ async function resolvePublicationInfo(
 
   switch (strategy.type) {
     case "well-known":
-      return resolveWellKnown(publicationUrl);
+      return resolveWellKnown(publicationUrl, fetchFn);
     case "dns-txt":
-      return resolveDnsTxt(domain);
+      return resolveDnsTxt(domain, fetchFn);
     case "feed-declared":
       return resolveFeedDeclared(feed);
   }
@@ -205,10 +209,11 @@ export async function importRss(
   options: ImportOptions
 ): Promise<ImportResult> {
   const { agent, start, onProgress, verification } = options;
+  const fetchFn = options.fetch ?? globalThis.fetch;
   const did = agent.did!;
 
   // Fetch and parse the feed
-  const response = await fetch(url.toString());
+  const response = await fetchFn(url.toString());
   if (!response.ok) {
     throw new Error(
       `Failed to fetch feed: ${response.status} ${response.statusText}`
@@ -222,11 +227,11 @@ export async function importRss(
 
   // Resolve publication info using the chosen verification strategy
   onProgress?.({ status: "resolving-publication" });
-  const pubInfo = await resolvePublicationInfo(feed, verification);
+  const pubInfo = await resolvePublicationInfo(feed, verification, fetchFn);
 
   // Create/update publication record
   onProgress?.({ status: "creating-publication" });
-  const pubRecord = await buildPublicationRecord(agent, feed.publication);
+  const pubRecord = await buildPublicationRecord(agent, feed.publication, fetchFn);
   await agent.com.atproto.repo.putRecord({
     repo: did,
     collection: "site.standard.publication",
@@ -274,7 +279,7 @@ export async function importRss(
         new URL(item.link).pathname
       );
 
-      const docRecord = await buildDocumentRecord(agent, item, pubAtUri);
+      const docRecord = await buildDocumentRecord(agent, item, pubAtUri, fetchFn);
 
       await agent.com.atproto.repo.putRecord({
         repo: did,

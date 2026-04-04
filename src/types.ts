@@ -95,6 +95,13 @@ export type PublicationVerification =
   | DnsTxtVerification
   | FeedDeclaredVerification;
 
+/**
+ * A fetch function compatible with the standard Fetch API.
+ * Consumers can provide a custom implementation to handle CORS
+ * (e.g., routing requests through a proxy server).
+ */
+export type FetchFunction = typeof globalThis.fetch;
+
 export interface ImportOptions {
   agent: import("@atproto/api").Agent;
   start?: Date;
@@ -104,4 +111,10 @@ export interface ImportOptions {
    * Defaults to "well-known" if not specified.
    */
   verification?: PublicationVerification;
+  /**
+   * Custom fetch function for all network requests.
+   * Use this to route requests through a CORS proxy in browser environments.
+   * Defaults to the global `fetch`.
+   */
+  fetch?: FetchFunction;
 }

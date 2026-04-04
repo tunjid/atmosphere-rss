@@ -1,11 +1,12 @@
 import type { Agent } from "@atproto/api";
-import type { ParsedItem, ParsedPublication } from "./types.js";
+import type { FetchFunction, ParsedItem, ParsedPublication } from "./types.js";
 import { truncateGraphemes } from "./truncate.js";
 import { uploadBlobFromUrl } from "./blob.js";
 
 export async function buildPublicationRecord(
   agent: Agent,
-  pub: ParsedPublication
+  pub: ParsedPublication,
+  fetchFn: FetchFunction = globalThis.fetch
 ): Promise<Record<string, unknown>> {
   const record: Record<string, unknown> = {
     $type: "site.standard.publication",
@@ -18,7 +19,7 @@ export async function buildPublicationRecord(
   }
 
   if (pub.iconUrl) {
-    const iconBlob = await uploadBlobFromUrl(agent, pub.iconUrl);
+    const iconBlob = await uploadBlobFromUrl(agent, pub.iconUrl, fetchFn);
     if (iconBlob) {
       record.icon = iconBlob;
     }
@@ -30,7 +31,8 @@ export async function buildPublicationRecord(
 export async function buildDocumentRecord(
   agent: Agent,
   item: ParsedItem,
-  pubAtUri: string
+  pubAtUri: string,
+  fetchFn: FetchFunction = globalThis.fetch
 ): Promise<Record<string, unknown>> {
   const record: Record<string, unknown> = {
     $type: "site.standard.document",
@@ -48,7 +50,7 @@ export async function buildDocumentRecord(
   }
 
   if (item.coverImageUrl) {
-    const coverBlob = await uploadBlobFromUrl(agent, item.coverImageUrl);
+    const coverBlob = await uploadBlobFromUrl(agent, item.coverImageUrl, fetchFn);
     if (coverBlob) {
       record.coverImage = coverBlob;
     }

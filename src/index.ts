@@ -32,4 +32,5 @@ export type {
   WellKnownVerification,
   DnsTxtVerification,
   FeedDeclaredVerification,
+  FetchFunction,
 } from "./types.js";

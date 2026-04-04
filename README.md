@@ -50,6 +50,7 @@ async function importRss(url: URL, options: ImportOptions): Promise<ImportResult
 | `options.start` | `Date?` | Only import items published on or after this date. If omitted, the whole feed is imported. |
 | `options.verification` | `PublicationVerification?` | How to resolve publication ownership. Defaults to `well-known`. |
 | `options.onProgress` | `(p: ImportProgress) => void` | Optional progress callback |
+| `options.fetch` | `FetchFunction?` | Custom fetch function for all network requests. Defaults to global `fetch`. |
 
 **Returns** an `ImportResult`:
 
@@ -166,6 +167,23 @@ This means re-importing the same feed produces the same record keys, making impo
 | RSS 2.0 with `content:encoded` | Supported (HTML extracted) |
 | Podcast feeds (iTunes namespace) | Rejected |
 | MRSS video feeds | Rejected |
+
+## Browser usage (CORS)
+
+In browser environments, RSS feeds and AT Protocol endpoints will typically be blocked by CORS. Pass a custom `fetch` function to route all requests through your proxy:
+
+```typescript
+import { importRss } from "atmosphere-rss";
+
+// All network requests go through your proxy
+const result = await importRss(new URL("https://myblog.com/rss"), {
+  agent,
+  fetch: (input, init) =>
+    globalThis.fetch(`/api/proxy?url=${encodeURIComponent(String(input))}`, init),
+});
+```
+
+The custom `fetch` is used for every network request the library makes: fetching the feed, resolving `.well-known` files, DNS-over-HTTPS lookups, PLC directory resolution, PDS record listing, and image blob downloads.
 
 ## Related
 

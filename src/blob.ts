@@ -1,11 +1,13 @@
 import type { Agent } from "@atproto/api";
+import type { FetchFunction } from "./types.js";
 
 export async function uploadBlobFromUrl(
   agent: Agent,
-  imageUrl: string
+  imageUrl: string,
+  fetchFn: FetchFunction = globalThis.fetch
 ): Promise<unknown | null> {
   try {
-    const response = await fetch(imageUrl);
+    const response = await fetchFn(imageUrl);
     if (!response.ok) return null;
 
     const arrayBuffer = await response.arrayBuffer();
