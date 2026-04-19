@@ -153,6 +153,44 @@ function extractDeclaredAtUri(
 }
 
 /**
+ * Extract the next page URL from feed-level pagination links.
+ *
+ * Follows RFC 5005 "Feed Paging and Archiving": a feed-level
+ * <atom:link rel="next" href="..." /> on an Atom <feed> or on an
+ * RSS 2.0 <channel> (using the Atom namespace).
+ *
+ * Accepts both the short "next" rel and the fully-qualified IANA
+ * URI form "http://www.iana.org/assignments/relation/next"
+ * (RFC 5005 § 3). Rel matching is case-insensitive and tolerates
+ * surrounding whitespace.
+ *
+ * Does NOT match rel="next-archive", which is semantically
+ * different (complete-archive traversal, RFC 5005 § 4).
+ *
+ * Feeds that paginate only via URL conventions (e.g. WordPress
+ * ?paged=N) and emit no link element are not detectable here and
+ * must be handled by the caller.
+ */
+function extractNextPageUrl(
+  feedLevel: Record<string, unknown>
+): string | null {
+  const links = feedLevel["atom:link"] || feedLevel["link"];
+  const linkArr = Array.isArray(links) ? links : links ? [links] : [];
+  for (const l of linkArr) {
+    if (!l || typeof l !== "object") continue;
+    const obj = l as Record<string, unknown>;
+    const rel = typeof obj["@_rel"] === "string" ?
+      (obj["@_rel"] as string).trim().toLowerCase() : "";
+    const isNext = rel === "next" ||
+      rel === "http://www.iana.org/assignments/relation/next";
+    if (isNext && typeof obj["@_href"] === "string") {
+      return obj["@_href"] as string;
+    }
+  }
+  return null;
+}
+
+/**
  * Detect channel-level iTunes podcast namespace metadata.
  */
 function hasPodcastChannelMetadata(
@@ -228,8 +266,9 @@ function parseRss2(channel: Record<string, unknown>): ParsedFeed {
   });
 
   const declaredAtUri = extractDeclaredAtUri(channel) ?? undefined;
+  const nextPageUrl = extractNextPageUrl(channel) ?? undefined;
   const hasPodcastMetadata = hasPodcastChannelMetadata(channel);
-  return { publication, items, declaredAtUri, hasPodcastMetadata };
+  return { publication, items, declaredAtUri, nextPageUrl, hasPodcastMetadata };
 }
 
 function parseAtom(feed: Record<string, unknown>): ParsedFeed {
@@ -331,9 +370,10 @@ function parseAtom(feed: Record<string, unknown>): ParsedFeed {
   });
 
   const declaredAtUri = extractDeclaredAtUri(feed) ?? undefined;
+  const nextPageUrl = extractNextPageUrl(feed) ?? undefined;
   // Atom feeds with iTunes metadata are podcasts too
   const hasPodcastMetadata = hasPodcastChannelMetadata(feed);
-  return { publication, items, declaredAtUri, hasPodcastMetadata };
+  return { publication, items, declaredAtUri, nextPageUrl, hasPodcastMetadata };
 }
 
 export function parseFeed(xmlText: string): ParsedFeed {
