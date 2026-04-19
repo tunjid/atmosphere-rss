@@ -3,6 +3,8 @@ export { parseFeed } from "./parse.js";
 export { validateFeed, isWritingItem } from "./validate.js";
 export { tidFromDate, tidFromDateAndString } from "./tid.js";
 export { truncateGraphemes } from "./truncate.js";
+export { buildPublicationRecord, buildDocumentRecord } from "./records.js";
+export { uploadBlobFromUrl } from "./blob.js";
 
 import { tidFromDateAndString } from "./tid.js";
 

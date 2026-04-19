@@ -32,6 +32,13 @@ export interface ParsedFeed {
    */
   declaredAtUri?: string;
   /**
+   * URL of the next page of items, extracted from an
+   * <atom:link rel="next" href="..." /> element at the feed level
+   * (RFC 5005 pagination). Absent if the feed is unpaginated or on
+   * the last page.
+   */
+  nextPageUrl?: string;
+  /**
    * Whether the feed has channel-level iTunes podcast namespace metadata
    * (itunes:type, itunes:category, or itunes:explicit).
    */
